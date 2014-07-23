@@ -7,6 +7,7 @@
 parent = dict()
 rank = dict()
 
+# Implementation of make, find, and union structure algorithms
 def make_set(vertice) :
 	parent[vertice] = vertice
 	rank[vertice] = 0
@@ -51,6 +52,7 @@ def sort_edge_dist(cost_sort, edge_sort) :
 	cost_int, cost_sort, edge_sort = zip(*sorted(zip(cost_int, cost_sort, edge_sort)))
 	return (cost_sort, edge_sort)
 
+# Kruskal Algorithm Implementation
 def Cluster_Kruskal (costs, edges) :
 	Cluster_Size = 500
 	i = 0
