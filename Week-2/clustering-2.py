@@ -3,10 +3,13 @@
 # ----------------------------------------------------------------
 # COURSERA ALGORITHMS-2 PROGRAMMING ASSIGNMENT-2 PROBLEM-2 (Python 3.x)
 # ----------------------------------------------------------------
+import timeit
+
 parent = dict()
 rank = dict()
 cluster = dict()
 
+# Implementation of make, find, and union structure algorithms
 def make_set(vertice) :
 	parent[vertice] = vertice
 	rank[vertice] = 0
@@ -19,8 +22,6 @@ def find_set(vertice) :
 def union_set(vertice1, vertice2) :
 	temp1 = find_set(vertice1)
 	temp2 = find_set(vertice2)
-	#print ("FINDSET",temp1, temp2)
-	#print ("VERTICES",vertice1, vertice2)
 	if temp1 != temp2 :
 		if rank[temp1] > rank[temp2] :
 			parent[temp2] = temp1
@@ -29,24 +30,28 @@ def union_set(vertice1, vertice2) :
 		elif rank[temp1] == rank[temp2] :
 			parent[temp2] = parent[temp1]
 			rank[temp2] +=1
-			#print ("rank incremented")
 		return True
 	else :
 		return False
 
-def xor_lists() :
+# Implemented set of 24 bit numbers with one 1 and two 1s using bit shift manipulation
+def xor_lists(num_bits) :
 	one_1_poss = []
 	two_1_poss = []
-	temp_val = int("0b111111111111111111111111", 2)
-	for i in range(temp_val) :
-		if bin(i+1).count("1") == 1 :
-			one_1_poss.append(i+1)
-		elif bin(i+1).count("1") == 2:
-			two_1_poss.append(i+1)
-		else :
-			pass
+	for i in range(num_bits) :
+		one_1_poss.append(1 << i)
+	for i in range(num_bits) :
+		temp1 = 1 << i
+		for j in range(num_bits) :
+			if j != i :
+				temp2 = temp1 + (1 << j)
+				if temp2 not in two_1_poss :
+					two_1_poss.append(temp2)
+				else : pass
+			else : pass	
 	return (one_1_poss, two_1_poss)
 
+# Return new_one_spaced and two_one_spaced which have the XOR operations with every vertex node and 300 bit combinations
 def one_spacing_list(int_value, one_1_poss):
 	new_one_spaced = []
 	new_one_spaced = [(int_value ^ i) for i in one_1_poss]
@@ -57,39 +62,44 @@ def two_spacing_list(int_value, two_1_poss) :
 	new_two_spaced = [(int_value ^ i) for i in two_1_poss]
 	return new_two_spaced
 
-def edge_builder(one_1_poss, two_1_poss, graph_list_integer, count) :
+# Calcuate value of K (max. clusters value) for spacing of 1 and 2 hamming distances (Similar to Kruskal Algorithm)
+def k_cluster_kruskal(one_1_poss, two_1_poss, graph_list_integer, count) :
 	len_list = len(graph_list_integer)
 	for index in range(len_list) :
-		#print (graph_list_integer)
+
 		new_one_spaced = one_spacing_list(graph_list_integer[index], one_1_poss)
-		#print (new_one_spaced)
+
 		new_two_spaced = two_spacing_list(graph_list_integer[index], two_1_poss)
-		#print (new_two_spaced)
-		#print ("element" + str(graph_list_integer[index]))
-		x = 0
-		for index2 in range(len_list) :
-			if ((graph_list_integer[index2] in new_one_spaced) or (graph_list_integer[index2] in new_two_spaced)) and (graph_list_integer[index2] != graph_list_integer[index]) and x <=300:
-				#print (index+1, index2+1)
-				bool_check = union_set(index+1, index2+1)
+		for element in new_one_spaced :
+			if (element != graph_list_integer[index]) and (element in cluster) :
+				bool_check = union_set(index + 1, cluster[element])
 				if bool_check == True :
 					count = count - 1
-					#print ("COUNT DECREMENTED! = " + str(count))
-					x = x + 1
+					#print ("Current Value of Count = " + str(count))
 				else :
 					pass
 			else :
 				pass
-			if x >= 300 :
-				break
+		for element in new_two_spaced :
+			if (element != graph_list_integer[index]) and (element in cluster) :
+				bool_check = union_set(index + 1, cluster[element])
+				if bool_check == True :
+					count = count - 1
+					#print ("Current Value of Count = " + str(count))
+				else :
+					pass
 			else :
-				pass
-	print ("FINAL COUNT = " + str(count))
+				pass	
+	return count
 
 if __name__ == "__main__" :
 	graph_list = []
 	graph_file = open("clustering_big.txt", "r+")
 	graph = [line.strip() for line in graph_file]
 	graph_file.close()
+
+# Obtain number of bits in distance field for each node
+	num_bits = int(graph[0].split(' ')[1])
 	graph.remove("200000 24")
 	vertice = [i for i in range(200001) if i != 0]
 
@@ -106,22 +116,21 @@ if __name__ == "__main__" :
 # Store the integer values of all binary representations in graph_list_integer
 	graph_list_integer = [int(data, base = 2) for data in graph_list]
 
-# Store the binary values of all the above representations in graph_list_bin
-	graph_list_bin = [bin(data) for data in graph_list_integer]
-	x = [int(data, 2) for data in graph_list_bin]
-	#print (graph_list_integer)
-	print (len(graph_list))
-	count_initial = len(graph_list)
-	print (graph_list_integer)
-	one_1_poss, two_1_poss = xor_lists()
-	x = [bin(i) for i in one_1_poss]
-	y = [bin(i) for i in two_1_poss]
-	print (one_1_poss)
-	print (two_1_poss)
-	print (x)
-	print (y)
-	edge_builder(one_1_poss, two_1_poss, graph_list_integer, count_initial)
+# Create dictionary with all the decimal values of 24 bit numbers	
+	x = 1
+	for i in graph_list_integer :
+		cluster[i] = x
+		x += 1
 
+	count_initial = len(graph_list)
+
+# start and stop invoke timers to check speed of program, Final execution of program
+	start = timeit.default_timer()
+	one_1_poss, two_1_poss = xor_lists(num_bits)
+	final_count = k_cluster_kruskal(one_1_poss, two_1_poss, graph_list_integer, count_initial)
+	print ("\nFinal value of K for cluster is " + str(final_count))
+	stop = timeit.default_timer()
+	print (stop - start)
 
 
 
